@@ -1,1 +1,9 @@
-print("Hello world")
+let x be 10
+print x
+
+let y be x
+print y
+
+change x to 2 * x
+print x
+print y
