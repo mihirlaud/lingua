@@ -7,19 +7,12 @@ public class Token {
 		this.value = value;
 		determineType();
 	}
-	
+
 	public String getValue() {
 		return this.value;
 	}
-	
+
 	public void determineType() {
-		for(Terminal terminal : Terminal.values()) {
-			if(this.value.toUpperCase().equals(terminal.toString())) {
-				this.t = terminal;
-				break;
-			}
-		}
-		
 		switch(this.value) {
 			case "\n":
 				this.t = Terminal.NewLine;
@@ -36,7 +29,22 @@ public class Token {
 			case ":":
 				this.t = Terminal.Colon;
 				break;
+			default:
+				this.t = Terminal.Value;
+				break;
 		}
+
+		for(Terminal terminal : Terminal.values()) {
+			if(this.value.toUpperCase().equals(terminal.toString())) {
+				this.t = terminal;
+				break;
+			}
+		}
+
+	}
+
+	public String toString() {
+		return this.value + " : " + this.t.toString();
 	}
 
 }
