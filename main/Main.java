@@ -5,13 +5,14 @@ import java.util.Scanner;
 public class Main {
 
 	public static void main(String[] args) {
-	
+
 		if(args.length == 1) {
 			try {
 				Scanner sc = new Scanner(new File(args[0]));
-				
+
 				Lexer lexer = new Lexer(sc);
-				lexer.lexFile();
+				Parser parser = new Parser(lexer.lexFile());
+				parser.parseTokens();
 			} catch(FileNotFoundException e) {
 				e.printStackTrace();
 			}

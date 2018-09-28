@@ -11,7 +11,7 @@ public class Lexer {
 		this.tokens = new ArrayList<Token>();
 	}
 
-	public void lexFile() {
+	public ArrayList<Token> lexFile() {
 		while(sc.hasNext()) {
 			String line = sc.nextLine();
 			String s = "";
@@ -30,7 +30,8 @@ public class Lexer {
 			tokens.add(new Token(s));
 			tokens.add(new Token("\n"));
 		}
-		System.out.println(tokens);
+
+		return tokens;
 	}
 
 }

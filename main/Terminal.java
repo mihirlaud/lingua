@@ -6,7 +6,6 @@ public enum Terminal {
 	Comma,
 	INT,
 	DEC,
-	Name,
 	ASSIGN,
 	TO,
 	Value,
