@@ -1,3 +1,11 @@
 define int x
 assign 10 to x
 call print(input: x)
+
+define int z
+define int function(int x, int y, int q)
+assign function(x: 10, y: 20) to z
+call print(input: z)
+
+define int height
+assign 10 + x + z to height

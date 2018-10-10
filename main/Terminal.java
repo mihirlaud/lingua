@@ -10,5 +10,6 @@ public enum Terminal {
 	TO,
 	Value,
 	CALL,
-	Colon
+	Colon,
+	Operand
 }

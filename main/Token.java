@@ -11,6 +11,10 @@ public class Token {
 	public String getValue() {
 		return this.value;
 	}
+	
+	public Terminal getType() {
+		return this.t;
+	}
 
 	public void determineType() {
 		switch(this.value) {
@@ -28,6 +32,18 @@ public class Token {
 				break;
 			case ":":
 				this.t = Terminal.Colon;
+				break;
+			case "+":
+				this.t = Terminal.Operand;
+				break;
+			case "-":
+				this.t = Terminal.Operand;
+				break;
+			case "*":
+				this.t = Terminal.Operand;
+				break;
+			case "/":
+				this.t = Terminal.Operand;
 				break;
 			default:
 				this.t = Terminal.Value;

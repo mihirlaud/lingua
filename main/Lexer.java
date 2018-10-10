@@ -1,5 +1,6 @@
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.util.StringTokenizer;
 
 public class Lexer {
 
@@ -13,21 +14,12 @@ public class Lexer {
 
 	public ArrayList<Token> lexFile() {
 		while(sc.hasNext()) {
-			String line = sc.nextLine();
-			String s = "";
-			for(int i = 0; i < line.length(); i++) {
-				char c = line.charAt(i);
-				if(c == ' ' || c == ':' || c == '(' || c == ')' || c == ',') {
-					tokens.add(new Token(s));
-					s = "";
-					if(c != ' ') {
-						tokens.add(new Token(s + c));
-					}
-				} else {
-					s += line.charAt(i);
-				}
+			StringTokenizer t = new StringTokenizer(sc.nextLine(), " (),:+-*/", true);
+			while(t.hasMoreTokens()) {
+				String str = t.nextToken();
+				if(!str.equals(" "))
+					tokens.add(new Token(str));
 			}
-			tokens.add(new Token(s));
 			tokens.add(new Token("\n"));
 		}
 
