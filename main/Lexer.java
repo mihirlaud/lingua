@@ -14,7 +14,7 @@ public class Lexer {
 
 	public ArrayList<Token> lexFile() {
 		while(sc.hasNext()) {
-			StringTokenizer t = new StringTokenizer(sc.nextLine(), " (),:+-*/", true);
+			StringTokenizer t = new StringTokenizer(sc.nextLine(), " (),:+-*/=<>", true);
 			while(t.hasMoreTokens()) {
 				String str = t.nextToken();
 				if(!str.equals(" "))

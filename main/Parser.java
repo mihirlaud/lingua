@@ -11,7 +11,7 @@ public class Parser {
 
 	public boolean parseTokens() {
 		boolean error = false;
-		
+
 		String line = "";
 		for(Token token : tokens) {
 			if(!token.getType().toString().equals("NewLine"))
@@ -25,21 +25,38 @@ public class Parser {
 				line = "";
 			}
 		}
-		
+
 		if(error) {
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	public boolean checkSyntax(String line) {
 		int pass = 0;
 		do {
 			String init = line;
 			String[][] checkStrings = {
+				{"Equals", "Comparator"},
+				{"Greater", "Comparator"},
+				{"Less", "Comparator"},
+				{"Equals Greater", "Comparator"},
+				{"Equals Less", "Comparator"},
+				{"Greater Equals", "Comparator"},
+				{"Less Equals", "Comparator"},
+				{"EQUALS", "LogicOperator"},
+				{"IS", "LogicOperator"},
+				{"ISNOT", "LogicOperator"},
+				{"AND", "LogicOperator"},
+				{" OR", " LogicOperator"},
+				{"NOT", "LogicOperator"},
+				{"TRUE", "Boolean"},
+				{"FALSE", "Boolean"},
 				{"INT Value", "TypePhrase"},
 				{"DEC Value", "TypePhrase"},
+				{"FOR EVERY TypePhrase FROM Value TO Value", "Line"},
+				{"BOOLEAN Value", "TypePhrase"},
 				{"TypePhrase Comma TypePhrase", "ParamList"},
 				{"ParamList Comma TypePhrase", "ParamList"},
 				{"ParamList Comma ParamList", "ParamList"},
@@ -56,8 +73,13 @@ public class Parser {
 				{"Value Operand Value", "Expression"},
 				{"Expression Operand Value", "Expression"},
 				{"Expression Operand Expression", "Expression"},
+				{"ASSIGN Boolean TO Value", "Line"},
+				{"Value Comparator Value", "BooleanExpression"},
+				{"Value Comparator BooleanExpression", "BooleanExpression"},
+				{"BooleanExpression Comparator BooleanExpression", "BooleanExpression"},
+				{"BooleanExpression", "Boolean"},
 			};
-		
+
 			for(String[] pair : checkStrings) {
 				String check = pair[0];
 				String replace = pair[1];
@@ -65,14 +87,15 @@ public class Parser {
 					line = line.substring(0, line.indexOf(check)) + replace + line.substring(line.indexOf(check) + check.length());
 				}
 			}
-			
+
 			if(init.equals(line)) {
 				pass++;
 			} else {
 				pass = 0;
 			}
+			//System.out.println(line + " " + pass);
 		} while(!line.equals("Line ") && pass < 3);
-		
+
 		return (line.equals("Line ") || line.equals(""));
 	}
 
