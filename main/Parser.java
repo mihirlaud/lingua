@@ -78,6 +78,23 @@ public class Parser {
 				{"Value Comparator BooleanExpression", "BooleanExpression"},
 				{"BooleanExpression Comparator BooleanExpression", "BooleanExpression"},
 				{"BooleanExpression", "Boolean"},
+				{"Boolean LogicOperator Boolean", "Condition"},
+				{"Boolean LogicOperator FunctionResult", "Condition"},
+				{"Boolean LogicOperator Value", "Condition"},
+				{"FunctionResult LogicOperator FunctionResult", "Condition"},
+				{"Value LogicOperator FunctionResult", "Condition"},
+				{"Value LogicOperator Value", "Condition"},
+				{"FunctionResult LogicOperator Boolean", "Condition"},
+				{"Value LogicOperator Boolean", "Condition"},
+				{"Condition LogicOperator Boolean", "Condition"},
+				{"Condition LogicOperator FunctionResult", "Condition"},
+				{"Condition LogicOperator Condition", "Condition"},
+				{"IF Condition THEN", "Line"},
+				{"IF Boolean THEN", "Line"},
+				{"IF FunctionResult THEN", "Line"},
+				{"WHILE Boolean DO", "Line"},
+				{"WHILE Condition DO", "Line"},
+				{"WHILE FunctionResult DO", "Line"},
 			};
 
 			for(String[] pair : checkStrings) {
@@ -93,7 +110,7 @@ public class Parser {
 			} else {
 				pass = 0;
 			}
-			//System.out.println(line + " " + pass);
+			System.out.println(line + " " + pass);
 		} while(!line.equals("Line ") && pass < 3);
 
 		return (line.equals("Line ") || line.equals(""));
