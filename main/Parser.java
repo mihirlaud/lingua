@@ -38,6 +38,7 @@ public class Parser {
 		do {
 			String init = line;
 			String[][] checkStrings = {
+				{"Tab ", ""},
 				{"Equals", "Comparator"},
 				{"Greater", "Comparator"},
 				{"Less", "Comparator"},
@@ -110,7 +111,7 @@ public class Parser {
 			} else {
 				pass = 0;
 			}
-			System.out.println(line + " " + pass);
+			//System.out.println(line + " " + pass);
 		} while(!line.equals("Line ") && pass < 3);
 
 		return (line.equals("Line ") || line.equals(""));

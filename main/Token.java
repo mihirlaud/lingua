@@ -18,6 +18,9 @@ public class Token {
 
 	public void determineType() {
 		switch(this.value) {
+			case "\t":
+				this.t = Terminal.Tab;
+				break;
 			case "\n":
 				this.t = Terminal.NewLine;
 				break;

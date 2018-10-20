@@ -1,6 +1,7 @@
 public enum Terminal {
 	DEFINE,
 	NewLine,
+	Tab,
 	OpenParen,
 	CloseParen,
 	Comma,
