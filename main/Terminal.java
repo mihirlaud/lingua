@@ -13,9 +13,10 @@ public enum Terminal {
 	ASSIGN,
 	TO,
 	Value,
+	Name,
 	CALL,
 	Colon,
-	Operand,
+	Operator,
 	IF,
 	ELSE,
 	THEN,
@@ -35,4 +36,5 @@ public enum Terminal {
 	Less,
 	GreaterEquals,
 	LessEquals,
+	Invalid,
 }

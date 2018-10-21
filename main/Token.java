@@ -1,3 +1,5 @@
+import java.util.regex.Pattern;
+
 public class Token {
 
 	private String value;
@@ -17,6 +19,12 @@ public class Token {
 	}
 
 	public void determineType() {
+		if(Pattern.matches("^[_a-z]\\w*$", this.value))
+			this.t = Terminal.Name;
+		
+		if(Pattern.matches("^([-]?)(\\d+)", this.value))
+			this.t = Terminal.Value;
+		
 		switch(this.value) {
 			case "\t":
 				this.t = Terminal.Tab;
@@ -37,16 +45,16 @@ public class Token {
 				this.t = Terminal.Colon;
 				break;
 			case "+":
-				this.t = Terminal.Operand;
+				this.t = Terminal.Operator;
 				break;
 			case "-":
-				this.t = Terminal.Operand;
+				this.t = Terminal.Operator;
 				break;
 			case "*":
-				this.t = Terminal.Operand;
+				this.t = Terminal.Operator;
 				break;
 			case "/":
-				this.t = Terminal.Operand;
+				this.t = Terminal.Operator;
 				break;
 			case "=":
 				this.t = Terminal.Equals;
@@ -57,9 +65,6 @@ public class Token {
 			case "<":
 				this.t = Terminal.Less;
 				break;
-			default:
-				this.t = Terminal.Value;
-				break;
 		}
 
 		for(Terminal terminal : Terminal.values()) {
@@ -68,6 +73,9 @@ public class Token {
 				break;
 			}
 		}
+		
+		if(this.t == null)
+			this.t = Terminal.Invalid;
 
 	}
 
