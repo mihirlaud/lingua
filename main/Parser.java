@@ -34,27 +34,20 @@ public class Parser {
 				}
 			}
 		}
-		
+
 		if(invalid) {
-			String s1 = "";
-			if(invalidNum > 0)
-				for(int j = 0; j < tokens.get(invalidNum - 1).length - 1; j++)
-					s1 += tokens.get(invalidNum - 1)[j].getValue() + " ";
-			String s2 = "";
-			for(int j = 0; j < tokens.get(invalidNum).length - 1; j++)
-				s2 += tokens.get(invalidNum)[j].getValue() + " ";
-			String s3 = "";
-			if(invalidNum < tokens.size() - 1)
-				for(int j = 0; j < tokens.get(invalidNum + 1).length - 1; j++)
-					s3 += tokens.get(invalidNum + 1)[j].getValue() + " ";
-			return new Error("Lexical Error", invalidNum + 1, s1, s2, s3);
+			if(invalidNum == 0)
+				return new Error("Lexical Error", invalidNum + 1, null, tokens.get(invalidNum), tokens.get(invalidNum + 1));
+			if(invalidNum == tokens.size() - 1)
+				return new Error("Lexical Error", invalidNum + 1, tokens.get(invalidNum - 1), tokens.get(invalidNum), null);
+			return new Error("Lexical Error", invalidNum + 1, tokens.get(invalidNum - 1), tokens.get(invalidNum), tokens.get(invalidNum + 1));
 		}
-		
+
 		Error e = checkSemantics();
 		if(e != null) {
 			return e;
 		}
-		
+
 		return null;
 
 	}
@@ -132,6 +125,10 @@ public class Parser {
 				{"WHILE Boolean DO", "Line"},
 				{"WHILE Condition DO", "Line"},
 				{"WHILE FunctionResult DO", "Line"},
+				{"ENDIF", "Line"},
+				{"ENDELSE", "Line"},
+				{"ENDFOR", "Line"},
+				{"ENDWHILE", "Line"},
 			};
 
 			for(String[] pair : checkStrings) {
@@ -153,70 +150,74 @@ public class Parser {
 		if(line.equals("Line ") || line.equals(""))
 			return null;
 		else {
-			String s1 = "";
-			if(lineNumber > 0)
-				for(int j = 0; j < tokens.get(lineNumber - 1).length - 1; j++)
-					s1 += tokens.get(lineNumber - 1)[j].getValue() + " ";
-			String s2 = "";
-			for(int j = 0; j < tokens.get(lineNumber).length - 1; j++)
-				s2 += tokens.get(lineNumber)[j].getValue() + " ";
-			String s3 = "";
-			if(lineNumber < tokens.size() - 1)
-				for(int j = 0; j < tokens.get(lineNumber + 1).length - 1; j++)
-					s3 += tokens.get(lineNumber + 1)[j].getValue() + " ";
-			return new Error("Semantic Error", lineNumber + 1, s1, s2, s3);
+			if(lineNumber == 0)
+				return new Error("Lexical Error", lineNumber + 1, null, tokens.get(lineNumber), tokens.get(lineNumber + 1));
+			if(lineNumber == tokens.size() - 1)
+				return new Error("Lexical Error", lineNumber + 1, tokens.get(lineNumber - 1), tokens.get(lineNumber), null);
+			return new Error("Lexical Error", lineNumber + 1, tokens.get(lineNumber - 1), tokens.get(lineNumber), tokens.get(lineNumber + 1));
 		}
 	}
-	
+
 	public Error checkSemantics() {
 		HashMap<String, String> memory = new HashMap<String, String>();
-		
+		int tabCount = 0;
+
 		for(int i = 0; i < tokens.size(); i++) {
 			Token[] line = tokens.get(i);
-			String keyword = line[0].getType().toString();
+			String keyword = line[0 + tabCount].getType().toString();
 			switch(keyword) {
 				case "DEFINE":
-					memory.put(line[2].getValue(), line[1].getValue());
+					memory.put(line[2 + tabCount].getValue(), line[1 + tabCount].getValue());
 					break;
 				case "ASSIGN":
 					if(memory.containsKey(line[line.length - 2].getValue())) {
-						String lineType = line[1].getType().toString();
+						String lineType = line[1 + tabCount].getType().toString();
 						String memType = memory.get(line[line.length - 2].getValue()).toUpperCase();
 						if((lineType.equals("Value") && (memType.equals("INT") || memType.equals("DEC")))) {
 							break;
 						} else if((lineType.equals("TRUE") || lineType.equals("FALSE")) && memType.equals("BOOLEAN")) {
 							break;
 						} else {
-							String s1 = "";
-							if(i > 0)
-								for(int j = 0; j < tokens.get(i - 1).length - 1; j++)
-									s1 += tokens.get(i - 1)[j].getValue() + " ";
-							String s2 = "";
-							for(int j = 0; j < tokens.get(i).length - 1; j++)
-								s2 += tokens.get(i)[j].getValue() + " ";
-							String s3 = "";
-							if(i < tokens.size() - 1)
-								for(int j = 0; j < tokens.get(i + 1).length - 1; j++)
-									s3 += tokens.get(i + 1)[j].getValue() + " ";
-							return new Error("Semantic Error", i+1, s1, s2, s3);
+							if(i == 0)
+								return new Error("Lexical Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							if(i == tokens.size() - 1)
+								return new Error("Lexical Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+							return new Error("Lexical Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 						}
 					} else {
-						String s1 = "";
-						if(i > 0)
-							for(int j = 0; j < tokens.get(i - 1).length - 1; j++)
-								s1 += tokens.get(i - 1)[j].getValue() + " ";
-						String s2 = "";
-						for(int j = 0; j < tokens.get(i).length - 1; j++)
-							s2 += tokens.get(i)[j].getValue() + " ";
-						String s3 = "";
-						if(i < tokens.size() - 1)
-							for(int j = 0; j < tokens.get(i + 1).length - 1; j++)
-								s3 += tokens.get(i + 1)[j].getValue() + " ";
-						return new Error("Semantic Error", i+1, s1, s2, s3);
+						if(i == 0)
+							return new Error("Lexical Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+						if(i == tokens.size() - 1)
+							return new Error("Lexical Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error("Lexical Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
+				case "IF":
+					tabCount++;
+					break;
+				case "ELSE":
+					tabCount++;
+					break;
+				case "FOR":
+					tabCount++;
+					break;
+				case "WHILE":
+					tabCount++;
+					break;
+				case "ENDIF":
+					tabCount--;
+					break;
+				case "ENDELSE":
+					tabCount--;
+					break;
+				case "ENDFOR":
+					tabCount--;
+					break;
+				case "ENDWHILE":
+					tabCount--;
+					break;
 			}
 		}
-		
+
 		return null;
 	}
 
