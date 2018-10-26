@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.StringTokenizer;
+import java.util.Arrays;
 
 public class Parser {
 
@@ -100,6 +101,7 @@ public class Parser {
 				{"Expression Operator Name", "Expression"},
 				{"Expression Operator Expression", "Expression"},
 				{"ASSIGN Boolean TO Name", "Line"},
+				{"ASSIGN BooleanExpression TO Name", "Line"},
 				{"Name Comparator Name", "BooleanExpression"},
 				{"Name Comparator Value", "BooleanExpression"},
 				{"Value Comparator Name", "BooleanExpression"},
@@ -151,10 +153,10 @@ public class Parser {
 			return null;
 		else {
 			if(lineNumber == 0)
-				return new Error("Lexical Error", lineNumber + 1, null, tokens.get(lineNumber), tokens.get(lineNumber + 1));
+				return new Error("Syntax Error", lineNumber + 1, null, tokens.get(lineNumber), tokens.get(lineNumber + 1));
 			if(lineNumber == tokens.size() - 1)
-				return new Error("Lexical Error", lineNumber + 1, tokens.get(lineNumber - 1), tokens.get(lineNumber), null);
-			return new Error("Lexical Error", lineNumber + 1, tokens.get(lineNumber - 1), tokens.get(lineNumber), tokens.get(lineNumber + 1));
+				return new Error("Syntax Error", lineNumber + 1, tokens.get(lineNumber - 1), tokens.get(lineNumber), null);
+			return new Error("Syntax Error", lineNumber + 1, tokens.get(lineNumber - 1), tokens.get(lineNumber), tokens.get(lineNumber + 1));
 		}
 	}
 
@@ -171,25 +173,49 @@ public class Parser {
 					break;
 				case "ASSIGN":
 					if(memory.containsKey(line[line.length - 2].getValue())) {
-						String lineType = line[1 + tabCount].getType().toString();
-						String memType = memory.get(line[line.length - 2].getValue()).toUpperCase();
-						if((lineType.equals("Value") && (memType.equals("INT") || memType.equals("DEC")))) {
-							break;
-						} else if((lineType.equals("TRUE") || lineType.equals("FALSE")) && memType.equals("BOOLEAN")) {
-							break;
+						if(line.length == 5 + tabCount) {
+							String lineType = line[1 + tabCount].getType().toString();
+							String memType = memory.get(line[line.length - 2].getValue()).toUpperCase();
+							if((lineType.equals("Value") && (memType.equals("INT") || memType.equals("DEC")))) {
+								break;
+							} else if((lineType.equals("TRUE") || lineType.equals("FALSE")) && memType.equals("BOOLEAN")) {
+								break;
+							} else {
+								if(i == 0)
+									return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+								if(i == tokens.size() - 1)
+									return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							}
 						} else {
-							if(i == 0)
-								return new Error("Lexical Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
-							if(i == tokens.size() - 1)
-								return new Error("Lexical Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-							return new Error("Lexical Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							Token[] expression = Arrays.copyOfRange(line, 1 + tabCount, line.length - 3);
+							String memType = memory.get(line[line.length - 2].getValue()).toUpperCase();
+							boolean error = false;
+							for(Token t : expression) {
+								if(memType.toUpperCase().equals(memory.get(t.getValue()).toUpperCase())) {
+									continue;
+								} else if(t.getType() == Terminal.Operator || t.getType() == Terminal.Value) {
+									continue;
+								} else {
+									error = true;
+									break;
+								}
+							}
+							if(error) {
+								if(i == 0)
+									return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+								if(i == tokens.size() - 1)
+									return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							}
+							break;
 						}
 					} else {
 						if(i == 0)
-							return new Error("Lexical Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
 						if(i == tokens.size() - 1)
-							return new Error("Lexical Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-						return new Error("Lexical Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
 				case "IF":
 					tabCount++;

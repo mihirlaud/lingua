@@ -21,10 +21,10 @@ public class Token {
 	public void determineType() {
 		if(Pattern.matches("^[_a-z]\\w*$", this.value))
 			this.t = Terminal.Name;
-		
+
 		if(Pattern.matches("^([-]?)(\\d+)", this.value))
 			this.t = Terminal.Value;
-		
+
 		switch(this.value) {
 			case "\t":
 				this.t = Terminal.Tab;
@@ -73,7 +73,7 @@ public class Token {
 				break;
 			}
 		}
-		
+
 		if(this.t == null)
 			this.t = Terminal.Invalid;
 
