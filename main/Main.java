@@ -12,9 +12,9 @@ public class Main {
 
 				Lexer lexer = new Lexer(sc);
 				Parser parser = new Parser(lexer.lexFile());
-				Error e = parser.parseTokens();
-				if(e != null)
-					System.out.println(e);
+				Error err = parser.parseTokens();
+				if(err != null)
+					System.out.println(err);
 			} catch(FileNotFoundException e) {
 				e.printStackTrace();
 			}

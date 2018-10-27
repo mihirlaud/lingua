@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Stack;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 import java.util.Arrays;
@@ -73,11 +74,9 @@ public class Parser {
 				{"AND", "LogicOperator"},
 				{" OR", " LogicOperator"},
 				{"NOT", "LogicOperator"},
-				{"TRUE", "Boolean"},
-				{"FALSE", "Boolean"},
 				{"INT Name", "TypePhrase"},
 				{"DEC Name", "TypePhrase"},
-				{"FOR EVERY TypePhrase FROM Value TO Value", "Line"},
+				{"FOR EVERY TypePhrase FROM Integer TO Integer", "Line"},
 				{"BOOLEAN Name", "TypePhrase"},
 				{"TypePhrase Comma TypePhrase", "ParamList"},
 				{"ParamList Comma TypePhrase", "ParamList"},
@@ -85,29 +84,44 @@ public class Parser {
 				{"TypePhrase OpenParen ParamList CloseParen", "Header"},
 				{"TypePhrase", "Header"},
 				{"DEFINE Header", "Line"},
-				{"ASSIGN Value TO Name", "Line"},
-				{"Name Colon Value", "Params"},
+				{"ASSIGN Integer TO Name", "Line"},
+				{"ASSIGN Decimal TO Name", "Line"},
+				{"Name Colon Integer", "Params"},
+				{"Name Colon Decimal", "Params"},
+				{"Name Colon Boolean", "Params"},
 				{"Name Colon Name", "Params"},
 				{"Params Comma Params", "Params"},
 				{"Name OpenParen Params CloseParen", "FunctionResult"},
 				{"CALL FunctionResult", "Line"},
 				{"ASSIGN FunctionResult TO Name", "Line"},
 				{"ASSIGN Expression TO Name", "Line"},
-				{"Value Operator Value", "Expression"},
-				{"Value Operator Name", "Expression"},
-				{"Name Operator Value", "Expression"},
+				{"Integer Operator Integer", "Expression"},
+				{"Integer Operator Decimal", "Expression"},
+				{"Decimal Operator Integer", "Expression"},
+				{"Decimal Operator Decimal", "Expression"},
+				{"Integer Operator Name", "Expression"},
+				{"Decimal Operator Name", "Expression"},
+				{"Name Operator Integer", "Expression"},
+				{"Name Operator Decimal", "Expression"},
 				{"Name Operator Name", "Expression"},
-				{"Expression Operator Value", "Expression"},
+				{"Expression Operator Integer", "Expression"},
+				{"Expression Operator Decimal", "Expression"},
 				{"Expression Operator Name", "Expression"},
 				{"Expression Operator Expression", "Expression"},
 				{"ASSIGN Boolean TO Name", "Line"},
 				{"ASSIGN BooleanExpression TO Name", "Line"},
 				{"Name Comparator Name", "BooleanExpression"},
-				{"Name Comparator Value", "BooleanExpression"},
-				{"Value Comparator Name", "BooleanExpression"},
-				{"Value Comparator Value", "BooleanExpression"},
-				{"Name Comparator BooleanExpression", "BooleanExpression"},
-				{"Value Comparator BooleanExpression", "BooleanExpression"},
+				{"Name Comparator Integer", "BooleanExpression"},
+				{"Name Comparator Decimal", "BooleanExpression"},
+				{"Integer Comparator Name", "BooleanExpression"},
+				{"Decimal Comparator Name", "BooleanExpression"},
+				{"Integer Comparator Integer", "BooleanExpression"},
+				{"Integer Comparator Decimal", "BooleanExpression"},
+				{"Decimal Comparator Integer", "BooleanExpression"},
+				{"Decimal Comparator Decimal", "BooleanExpression"},
+				{"BooleanExpression Comparator Decimal", "BooleanExpression"},
+				{"BooleanExpression Comparator Integer", "BooleanExpression"},
+				{"BooleanExpression Comparator Name", "BooleanExpression"},
 				{"BooleanExpression Comparator BooleanExpression", "BooleanExpression"},
 				{"BooleanExpression", "Boolean"},
 				{"Boolean LogicOperator Boolean", "Condition"},
@@ -121,6 +135,9 @@ public class Parser {
 				{"Condition LogicOperator Boolean", "Condition"},
 				{"Condition LogicOperator FunctionResult", "Condition"},
 				{"Condition LogicOperator Condition", "Condition"},
+				{"ELSE IF Condition THEN", "Line"},
+				{"ELSE IF Boolean THEN", "Line"},
+				{"ELSE IF FunctionResult THEN", "Line"},
 				{"IF Condition THEN", "Line"},
 				{"IF Boolean THEN", "Line"},
 				{"IF FunctionResult THEN", "Line"},
@@ -131,6 +148,7 @@ public class Parser {
 				{"ENDELSE", "Line"},
 				{"ENDFOR", "Line"},
 				{"ENDWHILE", "Line"},
+				{"ELSE", "Line"},
 			};
 
 			for(String[] pair : checkStrings) {
@@ -161,55 +179,101 @@ public class Parser {
 	}
 
 	public Error checkSemantics() {
-		HashMap<String, String> memory = new HashMap<String, String>();
+		Stack<String> memory = new Stack<>();
+		Stack<String> layer = new Stack<>();
+		Stack<String> lastVar = new Stack<>();
+		boolean possibleElse = false;
 		int tabCount = 0;
-
+		
 		for(int i = 0; i < tokens.size(); i++) {
 			Token[] line = tokens.get(i);
-			String keyword = line[0 + tabCount].getType().toString();
+			Terminal keyword = line[0 + tabCount].getType();
 			switch(keyword) {
-				case "DEFINE":
-					memory.put(line[2 + tabCount].getValue(), line[1 + tabCount].getValue());
+				case DEFINE:
+					possibleElse = false;
+					String var = line[2 + tabCount].getValue() + ":" + line[1 + tabCount].getType().toString();
+					if(memory.search(var) == -1)
+						memory.push(var);
+					else {
+						if(i == 0)
+							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+						if(i == tokens.size() - 1)
+							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+					}
 					break;
-				case "ASSIGN":
-					if(memory.containsKey(line[line.length - 2].getValue())) {
-						if(line.length == 5 + tabCount) {
-							String lineType = line[1 + tabCount].getType().toString();
-							String memType = memory.get(line[line.length - 2].getValue()).toUpperCase();
-							if((lineType.equals("Value") && (memType.equals("INT") || memType.equals("DEC")))) {
-								break;
-							} else if((lineType.equals("TRUE") || lineType.equals("FALSE")) && memType.equals("BOOLEAN")) {
-								break;
-							} else {
-								if(i == 0)
-									return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
-								if(i == tokens.size() - 1)
-									return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
-							}
-						} else {
-							Token[] expression = Arrays.copyOfRange(line, 1 + tabCount, line.length - 3);
-							String memType = memory.get(line[line.length - 2].getValue()).toUpperCase();
-							boolean error = false;
-							for(Token t : expression) {
-								if(memType.toUpperCase().equals(memory.get(t.getValue()).toUpperCase())) {
-									continue;
-								} else if(t.getType() == Terminal.Operator || t.getType() == Terminal.Value) {
-									continue;
-								} else {
+				case ASSIGN:
+					possibleElse = false;
+					boolean error = false;
+					Terminal type = Terminal.Invalid;
+					Token[] expression = Arrays.copyOfRange(line, 1 + tabCount, line.length - 3);
+					for(Token token : expression) {
+						if(token.getType() == Terminal.Integer || token.getType() == Terminal.Decimal || token.getType() == Terminal.Boolean) {
+							if(type != Terminal.Invalid) {
+								if(type != token.getType()) {
 									error = true;
 									break;
 								}
+							} else {
+								type = token.getType();
 							}
-							if(error) {
+						} else if(token.getType() == Terminal.Name) {
+							boolean notInMemory = true;
+							for(String mem : memory) {
+								if(mem.substring(0, mem.indexOf(":")).equals(token.getValue())) {
+									notInMemory = false;
+									Terminal varType = Terminal.Invalid;
+									switch(mem.substring(mem.indexOf(":") + 1)) {
+										case "INT":
+											varType = Terminal.Integer;
+											break;
+										case "DEC":
+											varType = Terminal.Decimal;
+											break;
+										case "BOOLEAN":
+											varType = Terminal.Boolean;
+											break;
+									}
+									if(type != Terminal.Invalid) {
+										if(type != varType) {
+											error = true;
+											break;
+										}
+									} else {
+										type = varType;
+									}
+								}
+							}
+							if(notInMemory) {
 								if(i == 0)
 									return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
 								if(i == tokens.size() - 1)
 									return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
 								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 							}
-							break;
 						}
+					}
+					String check = line[line.length - 2].getValue() + ":";
+					switch(type) {
+						case Integer:
+							check += "INT";
+							break;
+						case Decimal:
+							check += "DEC";
+							break;
+						case Boolean:
+							check += "BOOLEAN";
+							break;
+					}
+					if(error) {
+						if(i == 0)
+							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+						if(i == tokens.size() - 1)
+							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+					}
+					if(memory.search(check) != -1) {
+						break;
 					} else {
 						if(i == 0)
 							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
@@ -217,33 +281,107 @@ public class Parser {
 							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
 						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
-				case "IF":
+				case IF:
+					possibleElse = false;
+					layer.push("IF");
+					lastVar.push(memory.peek());
 					tabCount++;
 					break;
-				case "ELSE":
-					tabCount++;
-					break;
-				case "FOR":
-					tabCount++;
-					break;
-				case "WHILE":
-					tabCount++;
-					break;
-				case "ENDIF":
+				case ENDIF:
+					possibleElse = true;
+					if(layer.peek().equals("IF")) {
+						while(!lastVar.peek().equals(memory.peek())) {
+							memory.pop();
+						}
+						layer.pop();
+						lastVar.pop();
+					} else {
+						if(i == 0)
+							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+						if(i == tokens.size() - 1)
+							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+					}
 					tabCount--;
 					break;
-				case "ENDELSE":
+				case ELSE:
+					if(possibleElse) {
+						possibleElse = false;
+						layer.push("ELSE");
+						lastVar.push(memory.peek());
+						tabCount++;
+						break;
+					} else {
+						if(i == 0)
+							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+						if(i == tokens.size() - 1)
+							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+					}
+				case ENDELSE:
+					if(layer.peek().equals("ELSE")) {
+						while(!lastVar.peek().equals(memory.peek())) {
+							memory.pop();
+						}
+						layer.pop();
+						lastVar.pop();
+					} else {
+						if(i == 0)
+							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+						if(i == tokens.size() - 1)
+							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+					}
 					tabCount--;
 					break;
-				case "ENDFOR":
+				case WHILE:
+					possibleElse = false;
+					layer.push("WHILE");
+					lastVar.push(memory.peek());
+					tabCount++;
+					break;
+				case ENDWHILE:
+					if(layer.peek().equals("WHILE")) {
+						while(!lastVar.peek().equals(memory.peek())) {
+							memory.pop();
+						}
+						layer.pop();
+						lastVar.pop();
+					} else {
+						if(i == 0)
+							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+						if(i == tokens.size() - 1)
+							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+					}
 					tabCount--;
 					break;
-				case "ENDWHILE":
+				case FOR:
+					possibleElse = false;
+					layer.push("FOR");
+					lastVar.push(memory.peek());
+					memory.push(line[3 + tabCount].getValue() + ":" + line[2 + tabCount].getType().toString());
+					tabCount++;
+					break;
+				case ENDFOR:
+					if(layer.peek().equals("FOR")) {
+						while(!lastVar.peek().equals(memory.peek())) {
+							memory.pop();
+						}
+						layer.pop();
+						lastVar.pop();
+					} else {
+						if(i == 0)
+							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+						if(i == tokens.size() - 1)
+							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+					}
 					tabCount--;
 					break;
 			}
 		}
-
+		
 		return null;
 	}
 

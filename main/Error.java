@@ -28,7 +28,7 @@ public class Error {
 		return type + " detected on line " + lineNumber + ":\n" +
 			   "----------\n" +
 			   (lineNumber - 1) + "\t" + ln1 + "\n" +
-			   lineNumber + " -->  " + ln2 + "\n" +
+			   lineNumber + " -->\t" + ln2 + "\n" +
 			   (lineNumber + 1) + "\t" + ln3 + "\n" +
 			   "----------\n" +
 			   message;
