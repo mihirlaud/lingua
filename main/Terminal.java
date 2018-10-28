@@ -1,5 +1,6 @@
 public enum Terminal {
 	DEFINE,
+	ENDDEF,
 	NewLine,
 	Tab,
 	OpenParen,
@@ -41,4 +42,5 @@ public enum Terminal {
 	GreaterEquals,
 	LessEquals,
 	Invalid,
+	RETURN,
 }

@@ -77,19 +77,32 @@ public class Parser {
 				{"INT Name", "TypePhrase"},
 				{"DEC Name", "TypePhrase"},
 				{"FOR EVERY TypePhrase FROM Integer TO Integer", "Line"},
+				{"FOR EVERY TypePhrase FROM Integer TO Name", "Line"},
+				{"FOR EVERY TypePhrase FROM Name TO Integer", "Line"},
+				{"FOR EVERY TypePhrase FROM Name TO Name", "Line"},
 				{"BOOLEAN Name", "TypePhrase"},
 				{"TypePhrase Comma TypePhrase", "ParamList"},
 				{"ParamList Comma TypePhrase", "ParamList"},
 				{"ParamList Comma ParamList", "ParamList"},
 				{"TypePhrase OpenParen ParamList CloseParen", "Header"},
+				{"TypePhrase OpenParen TypePhrase CloseParen", "Header"},
 				{"TypePhrase", "Header"},
 				{"DEFINE Header", "Line"},
 				{"ASSIGN Integer TO Name", "Line"},
 				{"ASSIGN Decimal TO Name", "Line"},
+				{"ASSIGN Name TO Name", "Line"},
+				{"ASSIGN Condition TO Name", "Line"},
 				{"Name Colon Integer", "Params"},
 				{"Name Colon Decimal", "Params"},
 				{"Name Colon Boolean", "Params"},
 				{"Name Colon Name", "Params"},
+				{"RETURN Name", "Line"},
+				{"RETURN Integer", "Line"},
+				{"RETURN Decimal", "Line"},
+				{"RETURN Boolean", "Line"},
+				{"RETURN Expression", "Line"},
+				{"RETURN BooleanExpression", "Line"},
+				{"RETURN Condition", "Line"},
 				{"Params Comma Params", "Params"},
 				{"Name OpenParen Params CloseParen", "FunctionResult"},
 				{"CALL FunctionResult", "Line"},
@@ -148,6 +161,7 @@ public class Parser {
 				{"ENDELSE", "Line"},
 				{"ENDFOR", "Line"},
 				{"ENDWHILE", "Line"},
+				{"ENDDEF", "Line"},
 				{"ELSE", "Line"},
 			};
 
@@ -191,16 +205,62 @@ public class Parser {
 			switch(keyword) {
 				case DEFINE:
 					possibleElse = false;
-					String var = line[2 + tabCount].getValue() + ":" + line[1 + tabCount].getType().toString();
-					if(memory.search(var) == -1)
-						memory.push(var);
-					else {
+					if(line.length == 4 + tabCount) {
+						String var = line[2 + tabCount].getValue() + ":" + line[1 + tabCount].getType().toString();
+						if(memory.search(var) == -1)
+							memory.push(var);
+						else {
+							if(i == 0)
+								return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							if(i == tokens.size() - 1)
+								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+						}
+						break;
+					} else {
+						String var = line[2 + tabCount].getValue() + ":" + line[1 + tabCount].getType().toString() + "(";
+						for(int x = 5 + tabCount; x < line.length - 2; x += 3) {
+							var += line[x].getValue() + ":" + line[x - 1].getType().toString();
+							if(x < line.length - 3)
+								var += ",";
+						}
+						var += ")";
+						if(memory.search(var) == -1) {
+							memory.push(var);
+							layer.push("DEF");
+							lastVar.push(memory.peek());
+							for(int x = 5 + tabCount; x < line.length - 2; x += 3) {
+								String push = line[x].getValue() + ":" + line[x - 1].getType().toString();
+							}
+							tabCount++;
+						} else {
+							if(i == 0)
+								return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							if(i == tokens.size() - 1)
+								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+						}
+						break;
+					}
+				case ENDDEF:
+					possibleElse = false;
+					if(layer.peek().equals("DEF")) {
+						while(!lastVar.peek().equals(memory.peek())) {
+							memory.pop();
+						}
+						layer.pop();
+						lastVar.pop();
+					} else {
 						if(i == 0)
 							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
 						if(i == tokens.size() - 1)
 							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
 						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
+					tabCount--;
+					break;
+				case RETURN:
+					
 					break;
 				case ASSIGN:
 					possibleElse = false;
