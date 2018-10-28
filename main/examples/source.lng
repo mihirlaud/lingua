@@ -1,19 +1,20 @@
+import stdio
+
 define int a
 define int b
 assign 1 to a
 assign 1 to b
 
 for every int x from 0 to 10
-	call print(input: a)
+	call stdio::print(input: a)
 	assign 10 to x
 	assign a + b to a
 	assign a - b to b
 	endfor
 
-define int fibonacci(int range)
+define void fibonacci(int range)
 	define int i
 	define int j
-	define int k
 	assign 1 to i
 	assign 1 to j
 	
@@ -22,5 +23,7 @@ define int fibonacci(int range)
 		assign i - j to j
 		endfor
 	
-	assign i to k
-	return k
+	call stdio::print(input: i)
+	enddef
+
+call fibonacci(range: 10)

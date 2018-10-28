@@ -11,7 +11,7 @@ public class Main {
 				Scanner sc = new Scanner(new File(args[0]));
 
 				Lexer lexer = new Lexer(sc);
-				Parser parser = new Parser(lexer.lexFile());
+				Parser parser = new Parser(lexer.lexFile(), args[0]);
 				Error err = parser.parseTokens();
 				if(err != null)
 					System.out.println(err);

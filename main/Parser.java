@@ -3,13 +3,18 @@ import java.util.Stack;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 import java.util.Arrays;
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
 
 public class Parser {
 
 	private ArrayList<Token[]> tokens;
+	private String rootFilename;
 
-	public Parser(ArrayList<Token[]> tokens) {
+	public Parser(ArrayList<Token[]> tokens, String rootFilename) {
 		this.tokens = tokens;
+		this.rootFilename = rootFilename;
 	}
 
 	public Error parseTokens() {
@@ -61,6 +66,7 @@ public class Parser {
 			String init = line;
 			String[][] checkStrings = {
 				{"Tab ", ""},
+				{"IMPORT Name", "Line"},
 				{"Equals Greater", "Comparator"},
 				{"Equals Less", "Comparator"},
 				{"Greater Equals", "Comparator"},
@@ -86,6 +92,8 @@ public class Parser {
 				{"ParamList Comma ParamList", "ParamList"},
 				{"TypePhrase OpenParen ParamList CloseParen", "Header"},
 				{"TypePhrase OpenParen TypePhrase CloseParen", "Header"},
+				{"VOID Name OpenParen ParamList CloseParen", "Header"},
+				{"VOID Name OpenParen TypePhrase CloseParen", "Header"},
 				{"TypePhrase", "Header"},
 				{"DEFINE Header", "Line"},
 				{"ASSIGN Integer TO Name", "Line"},
@@ -96,15 +104,10 @@ public class Parser {
 				{"Name Colon Decimal", "Params"},
 				{"Name Colon Boolean", "Params"},
 				{"Name Colon Name", "Params"},
-				{"RETURN Name", "Line"},
-				{"RETURN Integer", "Line"},
-				{"RETURN Decimal", "Line"},
-				{"RETURN Boolean", "Line"},
-				{"RETURN Expression", "Line"},
-				{"RETURN BooleanExpression", "Line"},
-				{"RETURN Condition", "Line"},
+				{"Name Colon FunctionResult", "Params"},
 				{"Params Comma Params", "Params"},
 				{"Name OpenParen Params CloseParen", "FunctionResult"},
+				{"Name Colon Colon FunctionResult", "FunctionResult"},
 				{"CALL FunctionResult", "Line"},
 				{"ASSIGN FunctionResult TO Name", "Line"},
 				{"ASSIGN Expression TO Name", "Line"},
@@ -163,6 +166,13 @@ public class Parser {
 				{"ENDWHILE", "Line"},
 				{"ENDDEF", "Line"},
 				{"ELSE", "Line"},
+				{"RETURN Name", "Line"},
+				{"RETURN Integer", "Line"},
+				{"RETURN Decimal", "Line"},
+				{"RETURN Boolean", "Line"},
+				{"RETURN Expression", "Line"},
+				{"RETURN BooleanExpression", "Line"},
+				{"RETURN Condition", "Line"},
 			};
 
 			for(String[] pair : checkStrings) {
@@ -203,6 +213,32 @@ public class Parser {
 			Token[] line = tokens.get(i);
 			Terminal keyword = line[0 + tabCount].getType();
 			switch(keyword) {
+				case IMPORT:
+					String filename = line[1 + tabCount].getValue();
+					Scanner sc;
+					try {
+						if(rootFilename.indexOf("\\") != -1) {
+							filename = rootFilename.substring(0, rootFilename.indexOf("\\") + 1) + filename;
+						}
+						sc = new Scanner(new File(filename + ".java"));
+					} catch(FileNotFoundException e) {
+						try {
+							sc = new Scanner(new File(filename + ".lng"));
+						} catch(FileNotFoundException err) {
+							if(i == 0)
+								return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							if(i == tokens.size() - 1)
+								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+						}
+					}
+					while(sc.hasNext()) {
+						String f = sc.nextLine();
+						if(f.indexOf("///") != -1) {
+							memory.push(filename + "|" + f.substring(f.indexOf("///") + 3));
+						}
+					}
+					break;
 				case DEFINE:
 					possibleElse = false;
 					if(line.length == 4 + tabCount) {
@@ -260,7 +296,99 @@ public class Parser {
 					tabCount--;
 					break;
 				case RETURN:
-					
+					possibleElse = false;
+					boolean err = false;
+					String returnVal = "";
+					Terminal tempType = Terminal.Invalid;
+					Token[] returnExpression = Arrays.copyOfRange(line, 1 + tabCount, line.length - 1);
+					for(Token token : returnExpression) {
+						if(token.getType() == Terminal.Integer || token.getType() == Terminal.Decimal || token.getType() == Terminal.Boolean) {
+							if(tempType != Terminal.Invalid) {
+								if(tempType != token.getType()) {
+									err = true;
+									break;
+								}
+							} else {
+								tempType = token.getType();
+							}
+						} else if(token.getType() == Terminal.Name) {
+							boolean notInMemory = true;
+							for(String mem : memory) {
+								if(mem.substring(0, mem.indexOf(":")).equals(token.getValue())) {
+									notInMemory = false;
+									Terminal varType = Terminal.Invalid;
+									switch(mem.substring(mem.indexOf(":") + 1)) {
+										case "INT":
+											varType = Terminal.Integer;
+											break;
+										case "DEC":
+											varType = Terminal.Decimal;
+											break;
+										case "BOOLEAN":
+											varType = Terminal.Boolean;
+											break;
+									}
+									if(tempType != Terminal.Invalid) {
+										if(tempType != varType) {
+											err = true;
+											break;
+										}
+									} else {
+										tempType = varType;
+									}
+								}
+							}
+							if(notInMemory) {
+								if(i == 0)
+									return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+								if(i == tokens.size() - 1)
+									return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							}
+						}
+					}
+					if(err) {
+						if(i == 0)
+							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+						if(i == tokens.size() - 1)
+							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+					}
+					switch(tempType) {
+						case Integer:
+							returnVal = "INT";
+							break;
+						case Decimal:
+							returnVal = "DEC";
+							break;
+						case Boolean:
+							returnVal = "BOOLEAN";
+							break;
+					}
+					String returnType = memory.get(memory.size() - (memory.search(lastVar.peek())));
+					returnType = returnType.substring(returnType.indexOf(":") + 1, returnType.indexOf("("));
+					if(layer.peek().equals("DEF")) {
+						if(returnVal.equals(returnType)) {
+							while(!lastVar.peek().equals(memory.peek())) {
+								memory.pop();
+							}
+							layer.pop();
+							lastVar.pop();
+						} else {
+							if(i == 0)
+								return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							if(i == tokens.size() - 1)
+								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+						}
+					} else {
+						if(i == 0)
+							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+						if(i == tokens.size() - 1)
+							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+					}
+					tabCount--;
 					break;
 				case ASSIGN:
 					possibleElse = false;
@@ -439,9 +567,14 @@ public class Parser {
 					}
 					tabCount--;
 					break;
+				case CALL:
+					break;
 			}
 		}
 		
+		if(tabCount > 0) {
+			return new Error("Semantic Error", tokens.size(), tokens.get(tokens.size() - 2), tokens.get(tokens.size() - 1), null);
+		}
 		return null;
 	}
 

@@ -1,4 +1,5 @@
 public enum Terminal {
+	IMPORT,
 	DEFINE,
 	ENDDEF,
 	NewLine,
@@ -8,6 +9,7 @@ public enum Terminal {
 	Comma,
 	INT,
 	DEC,
+	VOID,
 	BOOLEAN,
 	ASSIGN,
 	TO,
