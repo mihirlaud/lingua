@@ -208,12 +208,13 @@ public class Parser {
 		Stack<String> lastVar = new Stack<>();
 		boolean possibleElse = false;
 		int tabCount = 0;
-		
+
 		for(int i = 0; i < tokens.size(); i++) {
 			Token[] line = tokens.get(i);
 			Terminal keyword = line[0 + tabCount].getType();
 			switch(keyword) {
 				case IMPORT:
+					possibleElse = false;
 					String filename = line[1 + tabCount].getValue();
 					Scanner sc;
 					try {
@@ -221,9 +222,11 @@ public class Parser {
 							filename = rootFilename.substring(0, rootFilename.indexOf("\\") + 1) + filename;
 						}
 						sc = new Scanner(new File(filename + ".java"));
+						filename = filename + ".java";
 					} catch(FileNotFoundException e) {
 						try {
 							sc = new Scanner(new File(filename + ".lng"));
+							filename = filename + ".lng";
 						} catch(FileNotFoundException err) {
 							if(i == 0)
 								return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
@@ -507,6 +510,7 @@ public class Parser {
 						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
 				case ENDELSE:
+					possibleElse = false;
 					if(layer.peek().equals("ELSE")) {
 						while(!lastVar.peek().equals(memory.peek())) {
 							memory.pop();
@@ -529,6 +533,7 @@ public class Parser {
 					tabCount++;
 					break;
 				case ENDWHILE:
+					possibleElse = false;
 					if(layer.peek().equals("WHILE")) {
 						while(!lastVar.peek().equals(memory.peek())) {
 							memory.pop();
@@ -552,6 +557,7 @@ public class Parser {
 					tabCount++;
 					break;
 				case ENDFOR:
+					possibleElse = false;
 					if(layer.peek().equals("FOR")) {
 						while(!lastVar.peek().equals(memory.peek())) {
 							memory.pop();
@@ -568,10 +574,11 @@ public class Parser {
 					tabCount--;
 					break;
 				case CALL:
+					possibleElse = false;
 					break;
 			}
 		}
-		
+
 		if(tabCount > 0) {
 			return new Error("Semantic Error", tokens.size(), tokens.get(tokens.size() - 2), tokens.get(tokens.size() - 1), null);
 		}
