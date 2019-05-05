@@ -19,7 +19,7 @@ public class Token {
 	}
 
 	public void determineType() {
-		if(Pattern.matches("^[_a-z]\\w*$", this.value))
+		if(Pattern.matches("^[a-zA-Z][(\\w)*(\\d)*]*$", this.value))
 			this.type = Terminal.Name;
 
 		if(Pattern.matches("^([-]?)(\\d+)", this.value))

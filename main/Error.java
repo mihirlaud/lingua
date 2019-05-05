@@ -1,14 +1,14 @@
 public class Error {
 
-	private String type;
-	private int lineNumber;
-	private String ln1;
-	private String ln2;
-	private String ln3;
-	private String message;
+	String type = "Error";
+	int lineNumber;
+	String ln1;
+	String ln2;
+	String ln3;
+	Token[] err;
+	String message = "ERROR DETECTED";
 
-	public Error(String type, int lineNumber, Token[] tkn1, Token[] tkn2, Token[] tkn3) {
-		this.type = type;
+	public Error(int lineNumber, Token[] tkn1, Token[] tkn2, Token[] tkn3) {
 		this.lineNumber = lineNumber;
 		this.ln1 = "";
 		if(tkn1 != null)
@@ -21,7 +21,23 @@ public class Error {
 		if(tkn3 != null)
 			for(int i = 0; i < tkn3.length - 1; i++)
 				this.ln3 += tkn3[i].getValue() + " ";
-		this.message = analyzeError();
+		this.err = tkn2;
+	}
+	
+	public void setType(String type) {
+		this.type = type;
+	}
+	
+	public void setMessage(String message) {
+		this.message = message;
+	}
+	
+	public String getMessage() {
+		return this.message;
+	}
+
+	public Token[] getErrorLine() {
+		return this.err;
 	}
 
 	public String toString() {
@@ -30,12 +46,7 @@ public class Error {
 			   (lineNumber - 1) + "\t" + ln1 + "\n" +
 			   lineNumber + " -->\t" + ln2 + "\n" +
 			   (lineNumber + 1) + "\t" + ln3 + "\n" +
-			   "----------\n" +
-			   message;
-	}
-
-	public String analyzeError() {
-		return "ERROR DETECTED";
+			   "----------\n";
 	}
 
 }

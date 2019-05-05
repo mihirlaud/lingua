@@ -30,6 +30,18 @@ public class Parser {
 					invalid = true;
 					invalidNum = i;
 				}
+				
+				if(invalid) {
+					if(invalidNum == 0){
+						LexicalError l = new LexicalError(invalidNum + 1, null, tokens.get(invalidNum), tokens.get(invalidNum + 1));
+						System.out.println(l.lineNumber);
+						return new LexicalError(invalidNum + 1, null, tokens.get(invalidNum), tokens.get(invalidNum + 1));
+					}
+					if(invalidNum == tokens.size() - 1)
+						return new LexicalError(invalidNum + 1, tokens.get(invalidNum - 1), tokens.get(invalidNum), null);
+					return new LexicalError(invalidNum + 1, tokens.get(invalidNum - 1), tokens.get(invalidNum), tokens.get(invalidNum + 1));
+				}
+				
 				if(!token.getType().toString().equals("NewLine"))
 					line += token.getType().toString() + " ";
 				else {
@@ -40,14 +52,6 @@ public class Parser {
 					line = "";
 				}
 			}
-		}
-
-		if(invalid) {
-			if(invalidNum == 0)
-				return new Error("Lexical Error", invalidNum + 1, null, tokens.get(invalidNum), tokens.get(invalidNum + 1));
-			if(invalidNum == tokens.size() - 1)
-				return new Error("Lexical Error", invalidNum + 1, tokens.get(invalidNum - 1), tokens.get(invalidNum), null);
-			return new Error("Lexical Error", invalidNum + 1, tokens.get(invalidNum - 1), tokens.get(invalidNum), tokens.get(invalidNum + 1));
 		}
 
 		Error e = checkSemantics();
@@ -195,10 +199,10 @@ public class Parser {
 			return null;
 		else {
 			if(lineNumber == 0)
-				return new Error("Syntax Error", lineNumber + 1, null, tokens.get(lineNumber), tokens.get(lineNumber + 1));
+				return new Error(lineNumber + 1, null, tokens.get(lineNumber), tokens.get(lineNumber + 1));
 			if(lineNumber == tokens.size() - 1)
-				return new Error("Syntax Error", lineNumber + 1, tokens.get(lineNumber - 1), tokens.get(lineNumber), null);
-			return new Error("Syntax Error", lineNumber + 1, tokens.get(lineNumber - 1), tokens.get(lineNumber), tokens.get(lineNumber + 1));
+				return new Error(lineNumber + 1, tokens.get(lineNumber - 1), tokens.get(lineNumber), null);
+			return new Error(lineNumber + 1, tokens.get(lineNumber - 1), tokens.get(lineNumber), tokens.get(lineNumber + 1));
 		}
 	}
 
@@ -229,16 +233,16 @@ public class Parser {
 							filename = filename + ".lng";
 						} catch(FileNotFoundException err) {
 							if(i == 0)
-								return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+								return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 							if(i == tokens.size() - 1)
-								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+								return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 						}
 					}
 					while(sc.hasNext()) {
 						String f = sc.nextLine();
-						if(f.indexOf("///") != -1) {
-							memory.push(filename + "|" + f.substring(f.indexOf("///") + 3));
+						if(f.contains("///")) {
+							memory.push(f.substring(f.indexOf("///") + 3));
 						}
 					}
 					break;
@@ -250,10 +254,10 @@ public class Parser {
 							memory.push(var);
 						else {
 							if(i == 0)
-								return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+								return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 							if(i == tokens.size() - 1)
-								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+								return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 						}
 						break;
 					} else {
@@ -274,10 +278,10 @@ public class Parser {
 							tabCount++;
 						} else {
 							if(i == 0)
-								return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+								return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 							if(i == tokens.size() - 1)
-								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+								return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 						}
 						break;
 					}
@@ -291,10 +295,10 @@ public class Parser {
 						lastVar.pop();
 					} else {
 						if(i == 0)
-							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 						if(i == tokens.size() - 1)
-							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
 					tabCount--;
 					break;
@@ -343,19 +347,19 @@ public class Parser {
 							}
 							if(notInMemory) {
 								if(i == 0)
-									return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+									return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 								if(i == tokens.size() - 1)
-									return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+									return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+								return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 							}
 						}
 					}
 					if(err) {
 						if(i == 0)
-							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 						if(i == tokens.size() - 1)
-							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
 					switch(tempType) {
 						case Integer:
@@ -379,17 +383,17 @@ public class Parser {
 							lastVar.pop();
 						} else {
 							if(i == 0)
-								return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+								return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 							if(i == tokens.size() - 1)
-								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+								return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 						}
 					} else {
 						if(i == 0)
-							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 						if(i == tokens.size() - 1)
-							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
 					tabCount--;
 					break;
@@ -437,10 +441,10 @@ public class Parser {
 							}
 							if(notInMemory) {
 								if(i == 0)
-									return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+									return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 								if(i == tokens.size() - 1)
-									return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-								return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+									return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+								return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 							}
 						}
 					}
@@ -458,19 +462,19 @@ public class Parser {
 					}
 					if(error) {
 						if(i == 0)
-							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 						if(i == tokens.size() - 1)
-							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
 					if(memory.search(check) != -1) {
 						break;
 					} else {
 						if(i == 0)
-							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 						if(i == tokens.size() - 1)
-							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
 				case IF:
 					possibleElse = false;
@@ -488,10 +492,10 @@ public class Parser {
 						lastVar.pop();
 					} else {
 						if(i == 0)
-							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 						if(i == tokens.size() - 1)
-							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
 					tabCount--;
 					break;
@@ -504,10 +508,10 @@ public class Parser {
 						break;
 					} else {
 						if(i == 0)
-							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 						if(i == tokens.size() - 1)
-							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
 				case ENDELSE:
 					possibleElse = false;
@@ -519,10 +523,10 @@ public class Parser {
 						lastVar.pop();
 					} else {
 						if(i == 0)
-							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 						if(i == tokens.size() - 1)
-							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
 					tabCount--;
 					break;
@@ -542,10 +546,10 @@ public class Parser {
 						lastVar.pop();
 					} else {
 						if(i == 0)
-							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 						if(i == tokens.size() - 1)
-							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
 					tabCount--;
 					break;
@@ -566,21 +570,91 @@ public class Parser {
 						lastVar.pop();
 					} else {
 						if(i == 0)
-							return new Error("Semantic Error", i + 1, null, tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
 						if(i == tokens.size() - 1)
-							return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), null);
-						return new Error("Semantic Error", i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
 					}
 					tabCount--;
 					break;
 				case CALL:
 					possibleElse = false;
+					Token[] func = Arrays.copyOfRange(line, 1 + tabCount, line.length - 1);
+					String header = "";
+					String retType = "";
+					int stopInd = 0;
+					for(int x = 0; x < func.length; x++) {
+						Token t = func[x];
+						if(t.getType().equals(Terminal.OpenParen)) {
+							stopInd = x;
+							break;
+						} else
+							header += t.getValue();
+					}
+					boolean inMemory = false;
+					for(String var : memory) {
+						if(var.indexOf(header) == 0) {
+							inMemory = true;
+							retType = var.substring(header.length() + 1, var.indexOf("("));
+						}
+					}
+					if(!inMemory) {
+						if(i == 0)
+							return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
+						if(i == tokens.size() - 1)
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+					}
+					header += ":" + retType + "(";
+					for(int x = stopInd + 1; x < func.length - 1; x++) {
+						Token t = func[x];
+						if(t.getType().equals(Terminal.Colon) || t.getType().equals(Terminal.Comma)) {
+							header += t.getValue();
+						} else if((x - (stopInd + 1)) % 4 == 2 && t.getType().equals(Terminal.Name)) {
+							boolean varInMemory = false;
+							for(String var : memory) {
+								if(var.indexOf(t.getValue()) == 0) {
+									header += var.substring(var.indexOf(":") + 1);
+									varInMemory = true;
+								}
+							}
+							if(!varInMemory) {
+								if(i == 0)
+									return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
+								if(i == tokens.size() - 1)
+									return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+								return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+							}
+						} else if((x - (stopInd + 1)) % 4 == 2) {
+							switch(t.getType()) {
+								case Integer:
+									header += "INT";
+									break;
+								case Decimal:
+									header += "DEC";
+									break;
+								case Boolean:
+									header += "BOOLEAN";
+									break;
+							}
+						} else {
+							header += t.getValue();
+						}
+					}
+					header += ")";
+					if(!memory.contains(header)) {
+						if(i == 0)
+							return new Error(i + 1, null, tokens.get(i), tokens.get(i + 1));
+						if(i == tokens.size() - 1)
+							return new Error(i + 1, tokens.get(i - 1), tokens.get(i), null);
+						return new Error(i + 1, tokens.get(i - 1), tokens.get(i), tokens.get(i + 1));
+					}
 					break;
 			}
 		}
 
 		if(tabCount > 0) {
-			return new Error("Semantic Error", tokens.size(), tokens.get(tokens.size() - 2), tokens.get(tokens.size() - 1), null);
+			return new Error(tokens.size(), tokens.get(tokens.size() - 2), tokens.get(tokens.size() - 1), null);
 		}
 		return null;
 	}
