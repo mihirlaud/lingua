@@ -29,6 +29,9 @@ public class Token {
 			this.type = Terminal.Decimal;
 
 		switch(this.value.toUpperCase()) {
+			case "_":
+				this.type = Terminal._result;
+				break;
 			case "\t":
 				this.type = Terminal.Tab;
 				break;

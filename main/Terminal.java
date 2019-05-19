@@ -45,4 +45,5 @@ public enum Terminal {
 	LessEquals,
 	Invalid,
 	RETURN,
+	_result,
 }

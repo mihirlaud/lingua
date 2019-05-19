@@ -15,6 +15,11 @@ public class Main {
 				Error err = parser.parseTokens();
 				if(err != null)
 					System.out.println(err);
+				else {
+					Generator generator = new Generator(lexer.lexFile(), args[0]);
+					generator.generateJasminFile();
+					generator.executeJasminFile();
+				}
 			} catch(FileNotFoundException e) {
 				e.printStackTrace();
 			}

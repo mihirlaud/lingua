@@ -225,8 +225,8 @@ public class Parser {
 						if(rootFilename.indexOf("\\") != -1) {
 							filename = rootFilename.substring(0, rootFilename.indexOf("\\") + 1) + filename;
 						}
-						sc = new Scanner(new File(filename + ".java"));
-						filename = filename + ".java";
+						sc = new Scanner(new File(filename + ".j"));
+						filename = filename + ".j";
 					} catch(FileNotFoundException e) {
 						try {
 							sc = new Scanner(new File(filename + ".lng"));
@@ -241,8 +241,8 @@ public class Parser {
 					}
 					while(sc.hasNext()) {
 						String f = sc.nextLine();
-						if(f.contains("///")) {
-							memory.push(f.substring(f.indexOf("///") + 3));
+						if(f.contains(";;")) {
+							memory.push(f.substring(f.indexOf(";;") + 2));
 						}
 					}
 					break;

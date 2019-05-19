@@ -1,2 +1,4 @@
-define int x
-assign banana to x
+import stdio
+
+define boolean a
+
